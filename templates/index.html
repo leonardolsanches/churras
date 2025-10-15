@@ -57,6 +57,12 @@
 
                 <div class="form-group">
                     <label>Familiares e Amigos</label>
+                    <div class="paste-area">
+                        <label for="paste-list">Cole a lista completa aqui (uma pessoa por linha, ex: "Nome +2"):</label>
+                        <textarea id="paste-list" placeholder="Washington +4&#10;Bruna +3&#10;Leo +1&#10;Waldir +2&#10;Aline +2&#10;Yama +1&#10;Ariel +1&#10;Fuoco +1&#10;Marco +1&#10;Fabio Arruda +1&#10;Fabiano"></textarea>
+                        <button type="button" class="btn-process" onclick="processarLista()">📋 Processar Lista</button>
+                    </div>
+                    <div class="divider">OU adicione individualmente:</div>
                     <div id="familiares-container">
                         <div class="familiar-item">
                             <input type="text" class="familiar-input" placeholder="Nome do familiar/amigo">

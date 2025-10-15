@@ -1,3 +1,61 @@
+function processarLista() {
+    const textarea = document.getElementById('paste-list');
+    const texto = textarea.value.trim();
+    
+    if (!texto) {
+        alert('Cole a lista de convidados primeiro!');
+        return;
+    }
+    
+    const linhas = texto.split('\n');
+    const container = document.getElementById('familiares-container');
+    
+    // Limpa campos existentes
+    container.innerHTML = '';
+    
+    linhas.forEach(linha => {
+        linha = linha.trim();
+        if (!linha) return;
+        
+        // Processa formato "Nome +X" ou apenas "Nome"
+        const match = linha.match(/^(.+?)\s*\+?\s*(\d+)?$/);
+        if (match) {
+            const nome = match[1].trim();
+            const quantidade = parseInt(match[2] || '0');
+            
+            // Adiciona a pessoa principal
+            const item = document.createElement('div');
+            item.className = 'familiar-item';
+            item.innerHTML = `
+                <input type="text" class="familiar-input" value="${nome}" placeholder="Nome do familiar/amigo">
+                <button type="button" class="btn-remove" onclick="removeFamiliar(this)">❌</button>
+            `;
+            container.appendChild(item);
+            
+            // Adiciona acompanhantes se houver
+            for (let i = 0; i < quantidade; i++) {
+                const acompItem = document.createElement('div');
+                acompItem.className = 'familiar-item';
+                acompItem.innerHTML = `
+                    <input type="text" class="familiar-input" value="${nome} - Acompanhante ${i + 1}" placeholder="Nome do familiar/amigo">
+                    <button type="button" class="btn-remove" onclick="removeFamiliar(this)">❌</button>
+                `;
+                container.appendChild(acompItem);
+            }
+        }
+    });
+    
+    // Se não adicionou nada, mantém um campo vazio
+    if (container.children.length === 0) {
+        addFamiliar();
+    }
+    
+    // Limpa o textarea
+    textarea.value = '';
+    
+    alert(`✅ Lista processada! Total de pessoas adicionadas: ${container.children.length}`);
+}
+
 function addFamiliar() {
     const container = document.getElementById('familiares-container');
     const newItem = document.createElement('div');
