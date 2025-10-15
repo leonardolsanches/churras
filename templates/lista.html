@@ -14,11 +14,26 @@
             <p class="total-count">Total de pessoas: <strong>{{ total }}</strong></p>
         </div>
 
+        {% if inscricoes %}
+        <div class="lista-actions">
+            <label class="select-all-container">
+                <input type="checkbox" id="select-all" onchange="toggleSelectAll(this)">
+                <span>Selecionar Todos</span>
+            </label>
+            <button id="delete-btn" class="btn-delete" onclick="deleteSelected()" disabled>
+                🗑️ Deletar Selecionados (<span id="selected-count">0</span>)
+            </button>
+        </div>
+        {% endif %}
+
         <div class="lista-content">
             {% if inscricoes %}
                 {% for inscricao in inscricoes %}
                 <div class="inscricao-card">
                     <div class="inscricao-header">
+                        <label class="checkbox-container">
+                            <input type="checkbox" class="inscricao-checkbox" value="{{ inscricao.email }}" onchange="updateDeleteButton()">
+                        </label>
                         <span class="email">✉️ {{ inscricao.email }}</span>
                     </div>
                     {% if inscricao.familiares %}
@@ -26,7 +41,12 @@
                         <strong>Acompanhantes:</strong>
                         <ul>
                             {% for familiar in inscricao.familiares %}
-                            <li>{{ familiar }}</li>
+                            <li class="familiar-item-checkbox">
+                                <label class="checkbox-container">
+                                    <input type="checkbox" class="inscricao-checkbox" value="{{ familiar.id }}" onchange="updateDeleteButton()">
+                                </label>
+                                <span>{{ familiar.nome }}</span>
+                            </li>
                             {% endfor %}
                         </ul>
                     </div>
@@ -42,5 +62,56 @@
             <a href="/">⬅️ Voltar para Inscrição</a>
         </div>
     </div>
+
+    <script>
+        function toggleSelectAll(checkbox) {
+            const checkboxes = document.querySelectorAll('.inscricao-checkbox');
+            checkboxes.forEach(cb => cb.checked = checkbox.checked);
+            updateDeleteButton();
+        }
+
+        function updateDeleteButton() {
+            const checkboxes = document.querySelectorAll('.inscricao-checkbox:checked');
+            const deleteBtn = document.getElementById('delete-btn');
+            const countSpan = document.getElementById('selected-count');
+            
+            countSpan.textContent = checkboxes.length;
+            deleteBtn.disabled = checkboxes.length === 0;
+
+            const selectAll = document.getElementById('select-all');
+            const totalCheckboxes = document.querySelectorAll('.inscricao-checkbox').length;
+            selectAll.checked = checkboxes.length === totalCheckboxes && totalCheckboxes > 0;
+        }
+
+        async function deleteSelected() {
+            const checkboxes = document.querySelectorAll('.inscricao-checkbox:checked');
+            const ids = Array.from(checkboxes).map(cb => cb.value);
+            
+            if (ids.length === 0) return;
+            
+            if (!confirm(`Deseja realmente deletar ${ids.length} item(ns) selecionado(s)?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/inscricao/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ids })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert(`✅ ${result.deleted.length} item(ns) deletado(s) com sucesso!`);
+                    location.reload();
+                } else {
+                    alert('❌ ' + (result.error || 'Erro ao deletar'));
+                }
+            } catch (error) {
+                alert('❌ Erro ao deletar. Tente novamente.');
+            }
+        }
+    </script>
 </body>
 </html>

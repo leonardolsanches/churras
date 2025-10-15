@@ -11,7 +11,17 @@ DATA_FILE = 'inscricoes.json'
 def load_data():
     if os.path.exists(DATA_FILE):
         with open(DATA_FILE, 'r', encoding='utf-8') as f:
-            return json.load(f)
+            data = json.load(f)
+            # Migrar dados antigos para novo formato se necessário
+            for inscricao in data.get('inscricoes', []):
+                if 'familiares' in inscricao and isinstance(inscricao['familiares'], list):
+                    if inscricao['familiares'] and not isinstance(inscricao['familiares'][0], dict):
+                        # Converter array de strings para array de objetos com ID
+                        inscricao['familiares'] = [
+                            {"id": f"{inscricao['email']}_{i}", "nome": nome}
+                            for i, nome in enumerate(inscricao['familiares'])
+                        ]
+            return data
     return {"inscricoes": []}
 
 def save_data(data):
@@ -41,9 +51,15 @@ def add_inscricao():
         if inscricao['email'] == email:
             return jsonify({"error": "Email já cadastrado"}), 400
     
+    familiares_nomes = dados.get('familiares', [])
+    familiares_com_id = [
+        {"id": f"{email}_{i}", "nome": nome}
+        for i, nome in enumerate(familiares_nomes)
+    ]
+    
     nova_inscricao = {
         "email": email,
-        "familiares": dados.get('familiares', [])
+        "familiares": familiares_com_id
     }
     
     data['inscricoes'].append(nova_inscricao)
@@ -83,6 +99,36 @@ def qrcode_lista():
     buf.seek(0)
     
     return send_file(buf, mimetype='image/png')
+
+@app.route('/api/inscricao/delete', methods=['POST'])
+def delete_inscricoes():
+    ids = request.json.get('ids', [])
+    
+    if not ids:
+        return jsonify({"error": "Nenhum ID fornecido"}), 400
+    
+    data = load_data()
+    deletados = []
+    
+    for inscricao in data['inscricoes'][:]:
+        # Deletar a inscrição completa se o email estiver nos IDs
+        if inscricao['email'] in ids:
+            deletados.append(inscricao['email'])
+            data['inscricoes'].remove(inscricao)
+        else:
+            # Deletar convidados individuais
+            familiares_atualizados = []
+            for familiar in inscricao.get('familiares', []):
+                if familiar['id'] not in ids:
+                    familiares_atualizados.append(familiar)
+                else:
+                    deletados.append(familiar['nome'])
+            
+            inscricao['familiares'] = familiares_atualizados
+    
+    save_data(data)
+    
+    return jsonify({"success": True, "deleted": deletados})
 
 @app.route('/lista')
 def lista():
