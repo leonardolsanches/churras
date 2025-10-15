@@ -1,3 +1,13 @@
+// Splashscreen
+window.addEventListener('load', () => {
+    setTimeout(() => {
+        const splash = document.getElementById('splashscreen');
+        if (splash) {
+            splash.style.display = 'none';
+        }
+    }, 3000);
+});
+
 function processarLista() {
     const textarea = document.getElementById('paste-list');
     const texto = textarea.value.trim();
@@ -20,14 +30,21 @@ function processarLista() {
         // Processa formato "Nome +X" ou apenas "Nome"
         const match = linha.match(/^(.+?)\s*\+?\s*(\d+)?$/);
         if (match) {
-            const nome = match[1].trim();
+            let nomeCompleto = match[1].trim();
             const quantidade = parseInt(match[2] || '0');
+            
+            // Separa nome e sobrenome (se houver)
+            const partesNome = nomeCompleto.split(' ').filter(p => p.length > 0);
+            const primeiroNome = partesNome[0] || '';
+            const sobrenome = partesNome.slice(1).join(' ') || '';
             
             // Adiciona a pessoa principal
             const item = document.createElement('div');
-            item.className = 'familiar-item';
+            item.className = 'familiar-item-grid';
             item.innerHTML = `
-                <input type="text" class="familiar-input" value="${nome}" placeholder="Nome do familiar/amigo">
+                <input type="text" class="familiar-input-nome" value="${primeiroNome}" placeholder="Nome">
+                <input type="text" class="familiar-input-sobrenome" value="${sobrenome}" placeholder="Sobrenome">
+                <input type="text" class="familiar-input-documento" value="" placeholder="RG/CPF">
                 <button type="button" class="btn-remove" onclick="removeFamiliar(this)">❌</button>
             `;
             container.appendChild(item);
@@ -35,9 +52,11 @@ function processarLista() {
             // Adiciona acompanhantes se houver
             for (let i = 0; i < quantidade; i++) {
                 const acompItem = document.createElement('div');
-                acompItem.className = 'familiar-item';
+                acompItem.className = 'familiar-item-grid';
                 acompItem.innerHTML = `
-                    <input type="text" class="familiar-input" value="${nome} - Acompanhante ${i + 1}" placeholder="Nome do familiar/amigo">
+                    <input type="text" class="familiar-input-nome" value="${primeiroNome} - Acomp ${i + 1}" placeholder="Nome">
+                    <input type="text" class="familiar-input-sobrenome" value="${sobrenome}" placeholder="Sobrenome">
+                    <input type="text" class="familiar-input-documento" value="" placeholder="RG/CPF">
                     <button type="button" class="btn-remove" onclick="removeFamiliar(this)">❌</button>
                 `;
                 container.appendChild(acompItem);
@@ -59,9 +78,11 @@ function processarLista() {
 function addFamiliar() {
     const container = document.getElementById('familiares-container');
     const newItem = document.createElement('div');
-    newItem.className = 'familiar-item';
+    newItem.className = 'familiar-item-grid';
     newItem.innerHTML = `
-        <input type="text" class="familiar-input" placeholder="Nome do familiar/amigo">
+        <input type="text" class="familiar-input-nome" placeholder="Nome">
+        <input type="text" class="familiar-input-sobrenome" placeholder="Sobrenome">
+        <input type="text" class="familiar-input-documento" placeholder="RG/CPF">
         <button type="button" class="btn-remove" onclick="removeFamiliar(this)">❌</button>
     `;
     container.appendChild(newItem);
@@ -79,6 +100,9 @@ function removeFamiliar(button) {
 document.getElementById('inscricaoForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     
+    const nome = document.getElementById('nome').value.trim();
+    const sobrenome = document.getElementById('sobrenome').value.trim();
+    const rg = document.getElementById('rg').value.trim();
     const email = document.getElementById('email').value.trim().toLowerCase();
     const messageDiv = document.getElementById('message');
     
@@ -88,15 +112,27 @@ document.getElementById('inscricaoForm').addEventListener('submit', async functi
         return;
     }
     
-    const familiarInputs = document.querySelectorAll('.familiar-input');
+    const familiarItems = document.querySelectorAll('.familiar-item-grid');
     const familiares = [];
-    familiarInputs.forEach(input => {
-        if (input.value.trim()) {
-            familiares.push(input.value.trim());
+    
+    familiarItems.forEach(item => {
+        const nome = item.querySelector('.familiar-input-nome').value.trim();
+        const sobrenome = item.querySelector('.familiar-input-sobrenome').value.trim();
+        const documento = item.querySelector('.familiar-input-documento').value.trim();
+        
+        if (nome || sobrenome) {
+            familiares.push({
+                nome: nome,
+                sobrenome: sobrenome,
+                documento: documento
+            });
         }
     });
     
     const dados = {
+        nome: nome,
+        sobrenome: sobrenome,
+        rg: rg,
         email: email,
         familiares: familiares
     };
@@ -116,6 +152,9 @@ document.getElementById('inscricaoForm').addEventListener('submit', async functi
             messageDiv.className = 'message success';
             messageDiv.textContent = '✅ Inscrição confirmada com sucesso!';
             
+            document.getElementById('nome').value = '';
+            document.getElementById('sobrenome').value = '';
+            document.getElementById('rg').value = '';
             document.getElementById('email').value = '';
             familiarInputs.forEach(input => input.value = '');
             

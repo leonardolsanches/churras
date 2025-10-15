@@ -8,6 +8,9 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
+    <div id="splashscreen" class="splashscreen">
+        <img src="{{ url_for('static', filename='banner1.png') }}" alt="Banner Churrasco">
+    </div>
     <div class="poster-container">
         <div class="poster-banner">
             <div class="poster-content">
@@ -51,6 +54,21 @@
             <h3>✅ Confirme sua Presença</h3>
             <form id="inscricaoForm">
                 <div class="form-group">
+                    <label for="nome">Nome *</label>
+                    <input type="text" id="nome" name="nome" placeholder="Seu nome" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="sobrenome">Sobrenome *</label>
+                    <input type="text" id="sobrenome" name="sobrenome" placeholder="Seu sobrenome" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="rg">RG (opcional)</label>
+                    <input type="text" id="rg" name="rg" placeholder="Apenas números">
+                </div>
+
+                <div class="form-group">
                     <label for="email">Email @claro.com.br *</label>
                     <input type="email" id="email" name="email" placeholder="seu.nome@claro.com.br" required>
                 </div>
@@ -64,8 +82,10 @@
                     </div>
                     <div class="divider">OU adicione individualmente:</div>
                     <div id="familiares-container">
-                        <div class="familiar-item">
-                            <input type="text" class="familiar-input" placeholder="Nome do familiar/amigo">
+                        <div class="familiar-item-grid">
+                            <input type="text" class="familiar-input-nome" placeholder="Nome">
+                            <input type="text" class="familiar-input-sobrenome" placeholder="Sobrenome">
+                            <input type="text" class="familiar-input-documento" placeholder="RG/CPF">
                             <button type="button" class="btn-remove" onclick="removeFamiliar(this)">❌</button>
                         </div>
                     </div>
@@ -79,6 +99,15 @@
 
             <div class="lista-link">
                 <a href="/lista" target="_blank">👥 Ver Lista de Confirmados</a>
+            </div>
+        </div>
+
+        <div class="banners-section">
+            <div class="banner-item">
+                <img src="{{ url_for('static', filename='banner1.png') }}" alt="Banner Churrasco de Confraternização">
+            </div>
+            <div class="banner-item">
+                <img src="{{ url_for('static', filename='banner2.png') }}" alt="Banner Churrasco da Diretoria">
             </div>
         </div>
     </div>

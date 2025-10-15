@@ -27,6 +27,8 @@ def load_data():
 def save_data(data):
     with open(DATA_FILE, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
+        f.flush()
+        os.fsync(f.fileno())
 
 @app.route('/')
 def index():
@@ -40,6 +42,9 @@ def get_inscricoes():
 @app.route('/api/inscricao', methods=['POST'])
 def add_inscricao():
     dados = request.json
+    nome = dados.get('nome', '').strip()
+    sobrenome = dados.get('sobrenome', '').strip()
+    rg = dados.get('rg', '').strip()
     email = dados.get('email', '').lower().strip()
     
     if not email.endswith('@claro.com.br'):
@@ -51,13 +56,31 @@ def add_inscricao():
         if inscricao['email'] == email:
             return jsonify({"error": "Email já cadastrado"}), 400
     
-    familiares_nomes = dados.get('familiares', [])
-    familiares_com_id = [
-        {"id": f"{email}_{i}", "nome": nome}
-        for i, nome in enumerate(familiares_nomes)
-    ]
+    familiares_dados = dados.get('familiares', [])
+    
+    familiares_com_id = []
+    for i, familiar in enumerate(familiares_dados):
+        if isinstance(familiar, str):
+            # Compatibilidade com formato antigo
+            familiares_com_id.append({
+                "id": f"{email}_{i}",
+                "nome": familiar.strip(),
+                "sobrenome": "",
+                "documento": ""
+            })
+        else:
+            # Novo formato com campos separados
+            familiares_com_id.append({
+                "id": f"{email}_{i}",
+                "nome": familiar.get('nome', '').strip(),
+                "sobrenome": familiar.get('sobrenome', '').strip(),
+                "documento": familiar.get('documento', '').strip()
+            })
     
     nova_inscricao = {
+        "nome": nome,
+        "sobrenome": sobrenome,
+        "rg": rg,
         "email": email,
         "familiares": familiares_com_id
     }
@@ -99,6 +122,23 @@ def qrcode_lista():
     buf.seek(0)
     
     return send_file(buf, mimetype='image/png')
+
+@app.route('/api/inscricao/update', methods=['POST'])
+def update_inscricao():
+    dados = request.json
+    email = dados.get('email', '').lower().strip()
+    
+    data = load_data()
+    
+    for inscricao in data['inscricoes']:
+        if inscricao['email'] == email:
+            inscricao['nome'] = dados.get('nome', '').strip()
+            inscricao['sobrenome'] = dados.get('sobrenome', '').strip()
+            inscricao['rg'] = dados.get('rg', '').strip()
+            save_data(data)
+            return jsonify({"success": True, "inscricao": inscricao})
+    
+    return jsonify({"error": "Inscrição não encontrada"}), 404
 
 @app.route('/api/inscricao/delete', methods=['POST'])
 def delete_inscricoes():

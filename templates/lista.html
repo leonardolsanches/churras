@@ -34,7 +34,16 @@
                         <label class="checkbox-container">
                             <input type="checkbox" class="inscricao-checkbox" value="{{ inscricao.email }}" onchange="updateDeleteButton()">
                         </label>
-                        <span class="email">✉️ {{ inscricao.email }}</span>
+                        <div class="inscricao-info">
+                            <div class="inscricao-nome">
+                                👤 <strong>{{ inscricao.nome or 'N/A' }} {{ inscricao.sobrenome or '' }}</strong>
+                                {% if inscricao.rg %}
+                                <span class="rg-badge">RG: {{ inscricao.rg }}</span>
+                                {% endif %}
+                            </div>
+                            <span class="email">✉️ {{ inscricao.email }}</span>
+                        </div>
+                        <button class="btn-edit" onclick="editarInscricao('{{ inscricao.email }}', '{{ inscricao.nome or '' }}', '{{ inscricao.sobrenome or '' }}', '{{ inscricao.rg or '' }}')">✏️</button>
                     </div>
                     {% if inscricao.familiares %}
                     <div class="familiares-list">
@@ -45,7 +54,12 @@
                                 <label class="checkbox-container">
                                     <input type="checkbox" class="inscricao-checkbox" value="{{ familiar.id }}" onchange="updateDeleteButton()">
                                 </label>
-                                <span>{{ familiar.nome }}</span>
+                                <span>
+                                    {{ familiar.nome }} {{ familiar.sobrenome or '' }}
+                                    {% if familiar.documento %}
+                                    <span class="rg-badge">{{ familiar.documento }}</span>
+                                    {% endif %}
+                                </span>
                             </li>
                             {% endfor %}
                         </ul>
@@ -60,6 +74,30 @@
 
         <div class="back-link">
             <a href="/">⬅️ Voltar para Inscrição</a>
+        </div>
+    </div>
+
+    <!-- Modal de Edição -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="fecharModal()">&times;</span>
+            <h2>✏️ Editar Cadastro</h2>
+            <form id="editForm">
+                <input type="hidden" id="edit-email">
+                <div class="form-group">
+                    <label>Nome:</label>
+                    <input type="text" id="edit-nome" required>
+                </div>
+                <div class="form-group">
+                    <label>Sobrenome:</label>
+                    <input type="text" id="edit-sobrenome" required>
+                </div>
+                <div class="form-group">
+                    <label>RG (opcional):</label>
+                    <input type="text" id="edit-rg">
+                </div>
+                <button type="submit" class="btn-save">💾 Salvar</button>
+            </form>
         </div>
     </div>
 
@@ -110,6 +148,55 @@
                 }
             } catch (error) {
                 alert('❌ Erro ao deletar. Tente novamente.');
+            }
+        }
+
+        function editarInscricao(email, nome, sobrenome, rg) {
+            document.getElementById('edit-email').value = email;
+            document.getElementById('edit-nome').value = nome;
+            document.getElementById('edit-sobrenome').value = sobrenome;
+            document.getElementById('edit-rg').value = rg;
+            document.getElementById('editModal').style.display = 'block';
+        }
+
+        function fecharModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        document.getElementById('editForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const dados = {
+                email: document.getElementById('edit-email').value,
+                nome: document.getElementById('edit-nome').value,
+                sobrenome: document.getElementById('edit-sobrenome').value,
+                rg: document.getElementById('edit-rg').value
+            };
+
+            try {
+                const response = await fetch('/api/inscricao/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dados)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert('✅ Cadastro atualizado com sucesso!');
+                    location.reload();
+                } else {
+                    alert('❌ ' + (result.error || 'Erro ao atualizar'));
+                }
+            } catch (error) {
+                alert('❌ Erro ao atualizar. Tente novamente.');
+            }
+        });
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('editModal');
+            if (event.target == modal) {
+                fecharModal();
             }
         }
     </script>
