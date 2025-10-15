@@ -1,0 +1,82 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Churrasco DIRSIS - 17/10</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="poster-container">
+        <div class="poster-banner">
+            <div class="poster-content">
+                <h1 class="poster-title">CHURRASCO</h1>
+                <p class="poster-subtitle">POR ADESÃO E RATEIO DE DESPESAS<br>DIRETORIA DE SISTEMAS<br>DE NEGÓCIOS (DEV)</p>
+                
+                <div class="flame-date">
+                    <div class="flame-icon">🔥</div>
+                    <div class="date-circle">
+                        <span class="date-day">17/10</span>
+                        <span class="date-time">SEXTA · 18H</span>
+                    </div>
+                </div>
+
+                <div class="location-info">
+                    <p class="location-title">PLAYGROUND DO SALÃO DE FESTA<br>DO PRÉDIO DO MINEIRO<br>DO CRUZEIRO (WASHINGTON)</p>
+                    <p class="location-address">R. DOUTOR BARROS CRUZ, 104<br>- SALÃO DE FESTAS, VILA MARIANA</p>
+                </div>
+
+                <p class="invite-text">
+                    TODOS ENGAJADOS<br>NA CONFRATERNIZAÇÃO E<br>SEUS PRÓXIMOS, SÃO TODOS<br>MUITO BEM-VINDOS.<br>
+                    O CONVITE SÓ NÃO É AMPLO<br>EM FUNÇÃO DO ESPAÇO<br>EM VIRTUDE DA SEGURANÇA<br>E CONFORTO DE TODOS.
+                </p>
+
+                <div class="qr-codes">
+                    <div class="qr-item">
+                        <img src="/qrcode/maps" alt="QR Code Maps">
+                        <p>ENDEREÇO - GOOGLE MAPS</p>
+                    </div>
+                    <div class="qr-item">
+                        <img src="/qrcode/lista" alt="QR Code Lista">
+                        <p>LISTA DE PRESENÇA</p>
+                    </div>
+                </div>
+
+                <div class="grill-decoration">🍖</div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3>✅ Confirme sua Presença</h3>
+            <form id="inscricaoForm">
+                <div class="form-group">
+                    <label for="email">Email @claro.com.br *</label>
+                    <input type="email" id="email" name="email" placeholder="seu.nome@claro.com.br" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Familiares e Amigos</label>
+                    <div id="familiares-container">
+                        <div class="familiar-item">
+                            <input type="text" class="familiar-input" placeholder="Nome do familiar/amigo">
+                            <button type="button" class="btn-remove" onclick="removeFamiliar(this)">❌</button>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-add" onclick="addFamiliar()">➕ Adicionar Familiar/Amigo</button>
+                </div>
+
+                <button type="submit" class="btn-submit">Confirmar Presença</button>
+            </form>
+
+            <div id="message" class="message"></div>
+
+            <div class="lista-link">
+                <a href="/lista" target="_blank">👥 Ver Lista de Confirmados</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

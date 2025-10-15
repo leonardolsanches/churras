@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Confirmados - Churrasco DIRSIS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="lista-header">
+            <h1>📋 Lista de Confirmados</h1>
+            <h2>Churrasco DIRSIS - 17/10 às 18h</h2>
+            <p class="total-count">Total de pessoas: <strong>{{ total }}</strong></p>
+        </div>
+
+        <div class="lista-content">
+            {% if inscricoes %}
+                {% for inscricao in inscricoes %}
+                <div class="inscricao-card">
+                    <div class="inscricao-header">
+                        <span class="email">✉️ {{ inscricao.email }}</span>
+                    </div>
+                    {% if inscricao.familiares %}
+                    <div class="familiares-list">
+                        <strong>Acompanhantes:</strong>
+                        <ul>
+                            {% for familiar in inscricao.familiares %}
+                            <li>{{ familiar }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            {% else %}
+                <p class="no-data">Nenhuma confirmação ainda. Seja o primeiro!</p>
+            {% endif %}
+        </div>
+
+        <div class="back-link">
+            <a href="/">⬅️ Voltar para Inscrição</a>
+        </div>
+    </div>
+</body>
+</html>
