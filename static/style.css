@@ -180,8 +180,49 @@ body {
     text-align: center;
 }
 
-.form-group {
+.responsavel-section {
+    background: linear-gradient(135deg, #f0f7ff 0%, #e6f2ff 100%);
+    padding: 25px;
+    border-radius: 15px;
+    margin-bottom: 30px;
+    border: 2px solid #667eea;
+}
+
+.responsavel-section h4 {
+    color: #667eea;
+    font-size: 1.4em;
     margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.convidados-section {
+    background: #f8f9fa;
+    padding: 25px;
+    border-radius: 15px;
+    margin-bottom: 20px;
+    border: 2px solid #ddd;
+}
+
+.convidados-section h4 {
+    color: #333;
+    font-size: 1.4em;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.form-group {
+    margin-bottom: 0;
 }
 
 .form-group label {
@@ -189,10 +230,11 @@ body {
     color: #333;
     font-weight: bold;
     margin-bottom: 8px;
-    font-size: 1.1em;
+    font-size: 1em;
 }
 
-.form-group input[type="email"] {
+.form-group input[type="email"],
+.form-group input[type="text"] {
     width: 100%;
     padding: 12px;
     border: 2px solid #ddd;
@@ -201,9 +243,16 @@ body {
     transition: border-color 0.3s;
 }
 
-.form-group input[type="email"]:focus {
+.form-group input[type="email"]:focus,
+.form-group input[type="text"]:focus {
     outline: none;
     border-color: #667eea;
+}
+
+@media (max-width: 768px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
 }
 
 #familiares-container {
@@ -638,32 +687,63 @@ body {
     color: #667eea;
 }
 
-.familiares-list ul {
-    list-style: none;
-    padding-left: 20px;
+.familiares-list {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #ddd;
+}
+
+.familiares-grid {
     margin-top: 10px;
 }
 
-.familiar-item-checkbox {
+.familiar-row {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 5px 0;
+    padding: 10px;
+    background: white;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    border: 1px solid #e0e0e0;
 }
 
-.familiares-list ul {
-    list-style: none;
-    padding-left: 20px;
-    margin-top: 5px;
+.familiar-info {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
 }
 
-.familiares-list li {
-    padding: 5px 0;
-    color: #555;
+.familiar-nome {
+    font-weight: 600;
+    color: #333;
 }
 
-.familiares-list li:before {
+.familiar-nome::before {
     content: "👤 ";
+}
+
+.familiar-sobrenome {
+    color: #666;
+}
+
+.btn-edit-small {
+    padding: 6px 12px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    min-width: 40px;
+}
+
+.btn-edit-small:hover {
+    background: linear-gradient(135deg, #5568d3, #653a8b);
+    transform: translateY(-1px);
 }
 
 .no-data {

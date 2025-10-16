@@ -41,54 +41,67 @@ def get_inscricoes():
 
 @app.route('/api/inscricao', methods=['POST'])
 def add_inscricao():
-    dados = request.json
-    nome = dados.get('nome', '').strip()
-    sobrenome = dados.get('sobrenome', '').strip()
-    rg = dados.get('rg', '').strip()
-    email = dados.get('email', '').lower().strip()
-    
-    if not email.endswith('@claro.com.br'):
-        return jsonify({"error": "Email deve ser @claro.com.br"}), 400
-    
-    data = load_data()
-    
-    for inscricao in data['inscricoes']:
-        if inscricao['email'] == email:
-            return jsonify({"error": "Email já cadastrado"}), 400
-    
-    familiares_dados = dados.get('familiares', [])
-    
-    familiares_com_id = []
-    for i, familiar in enumerate(familiares_dados):
-        if isinstance(familiar, str):
-            # Compatibilidade com formato antigo
-            familiares_com_id.append({
-                "id": f"{email}_{i}",
-                "nome": familiar.strip(),
-                "sobrenome": "",
-                "documento": ""
-            })
-        else:
-            # Novo formato com campos separados
-            familiares_com_id.append({
-                "id": f"{email}_{i}",
-                "nome": familiar.get('nome', '').strip(),
-                "sobrenome": familiar.get('sobrenome', '').strip(),
-                "documento": familiar.get('documento', '').strip()
-            })
-    
-    nova_inscricao = {
-        "nome": nome,
-        "sobrenome": sobrenome,
-        "rg": rg,
-        "email": email,
-        "familiares": familiares_com_id
-    }
-    
-    data['inscricoes'].append(nova_inscricao)
-    save_data(data)
-    
-    return jsonify({"success": True, "inscricao": nova_inscricao})
+    try:
+        dados = request.json
+        if not dados:
+            return jsonify({"error": "Dados inválidos"}), 400
+            
+        nome = dados.get('nome', '').strip()
+        sobrenome = dados.get('sobrenome', '').strip()
+        rg = dados.get('rg', '').strip()
+        email = dados.get('email', '').lower().strip()
+        
+        if not email:
+            return jsonify({"error": "Email é obrigatório"}), 400
+            
+        if not email.endswith('@claro.com.br'):
+            return jsonify({"error": "Email deve ser @claro.com.br"}), 400
+        
+        if not nome:
+            return jsonify({"error": "Nome é obrigatório"}), 400
+        
+        data = load_data()
+        
+        for inscricao in data['inscricoes']:
+            if inscricao['email'] == email:
+                return jsonify({"error": "Email já cadastrado"}), 400
+        
+        familiares_dados = dados.get('familiares', [])
+        
+        familiares_com_id = []
+        for i, familiar in enumerate(familiares_dados):
+            if isinstance(familiar, str):
+                # Compatibilidade com formato antigo
+                familiares_com_id.append({
+                    "id": f"{email}_{i}",
+                    "nome": familiar.strip(),
+                    "sobrenome": "",
+                    "documento": ""
+                })
+            else:
+                # Novo formato com campos separados
+                familiares_com_id.append({
+                    "id": f"{email}_{i}",
+                    "nome": familiar.get('nome', '').strip(),
+                    "sobrenome": familiar.get('sobrenome', '').strip(),
+                    "documento": familiar.get('documento', '').strip()
+                })
+        
+        nova_inscricao = {
+            "nome": nome,
+            "sobrenome": sobrenome,
+            "rg": rg,
+            "email": email,
+            "familiares": familiares_com_id
+        }
+        
+        data['inscricoes'].append(nova_inscricao)
+        save_data(data)
+        
+        return jsonify({"success": True, "inscricao": nova_inscricao})
+    except Exception as e:
+        print(f"Erro ao processar inscrição: {str(e)}")
+        return jsonify({"error": f"Erro interno: {str(e)}"}), 500
 
 @app.route('/qrcode/maps')
 def qrcode_maps():
@@ -139,6 +152,26 @@ def update_inscricao():
             return jsonify({"success": True, "inscricao": inscricao})
     
     return jsonify({"error": "Inscrição não encontrada"}), 404
+
+@app.route('/api/convidado/update', methods=['POST'])
+def update_convidado():
+    dados = request.json
+    email = dados.get('email', '').lower().strip()
+    convidado_id = dados.get('id', '').strip()
+    
+    data = load_data()
+    
+    for inscricao in data['inscricoes']:
+        if inscricao['email'] == email:
+            for familiar in inscricao.get('familiares', []):
+                if familiar['id'] == convidado_id:
+                    familiar['nome'] = dados.get('nome', '').strip()
+                    familiar['sobrenome'] = dados.get('sobrenome', '').strip()
+                    familiar['documento'] = dados.get('rg', '').strip()
+                    save_data(data)
+                    return jsonify({"success": True, "familiar": familiar})
+    
+    return jsonify({"error": "Convidado não encontrado"}), 404
 
 @app.route('/api/inscricao/delete', methods=['POST'])
 def delete_inscricoes():

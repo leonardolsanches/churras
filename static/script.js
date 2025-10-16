@@ -82,19 +82,14 @@ function addFamiliar() {
     newItem.innerHTML = `
         <input type="text" class="familiar-input-nome" placeholder="Nome">
         <input type="text" class="familiar-input-sobrenome" placeholder="Sobrenome">
-        <input type="text" class="familiar-input-documento" placeholder="RG/CPF">
+        <input type="text" class="familiar-input-documento" placeholder="RG/CPF (opcional)">
         <button type="button" class="btn-remove" onclick="removeFamiliar(this)">❌</button>
     `;
     container.appendChild(newItem);
 }
 
 function removeFamiliar(button) {
-    const container = document.getElementById('familiares-container');
-    if (container.children.length > 1) {
-        button.parentElement.remove();
-    } else {
-        button.previousElementSibling.value = '';
-    }
+    button.parentElement.remove();
 }
 
 document.getElementById('inscricaoForm').addEventListener('submit', async function(e) {
@@ -109,6 +104,7 @@ document.getElementById('inscricaoForm').addEventListener('submit', async functi
     if (!email.endsWith('@claro.com.br')) {
         messageDiv.className = 'message error';
         messageDiv.textContent = '❌ O email deve ser do domínio @claro.com.br';
+        messageDiv.style.display = 'block';
         return;
     }
     
@@ -116,28 +112,49 @@ document.getElementById('inscricaoForm').addEventListener('submit', async functi
     const familiares = [];
     
     familiarItems.forEach(item => {
-        const nome = item.querySelector('.familiar-input-nome').value.trim();
-        const sobrenome = item.querySelector('.familiar-input-sobrenome').value.trim();
+        const nomeItem = item.querySelector('.familiar-input-nome').value.trim();
+        const sobrenomeItem = item.querySelector('.familiar-input-sobrenome').value.trim();
         const documento = item.querySelector('.familiar-input-documento').value.trim();
         
-        if (nome || sobrenome) {
+        if (nomeItem || sobrenomeItem) {
             familiares.push({
-                nome: nome,
-                sobrenome: sobrenome,
+                nome: nomeItem,
+                sobrenome: sobrenomeItem,
                 documento: documento
             });
         }
     });
     
+    // Se não tem nome principal mas tem familiares da lista em lote, usar primeiro da lista como responsável
+    let nomeResponsavel = nome;
+    let sobrenomeResponsavel = sobrenome;
+    
+    if (!nomeResponsavel && familiares.length > 0) {
+        nomeResponsavel = familiares[0].nome;
+        sobrenomeResponsavel = familiares[0].sobrenome;
+        familiares.shift(); // Remove o primeiro que virou responsável
+    }
+    
+    if (!nomeResponsavel) {
+        messageDiv.className = 'message error';
+        messageDiv.textContent = '❌ Preencha seu nome ou cole uma lista de convidados';
+        messageDiv.style.display = 'block';
+        return;
+    }
+    
     const dados = {
-        nome: nome,
-        sobrenome: sobrenome,
+        nome: nomeResponsavel,
+        sobrenome: sobrenomeResponsavel,
         rg: rg,
         email: email,
         familiares: familiares
     };
     
     try {
+        messageDiv.style.display = 'block';
+        messageDiv.className = 'message';
+        messageDiv.textContent = '⏳ Enviando...';
+        
         const response = await fetch('/api/inscricao', {
             method: 'POST',
             headers: {
@@ -156,7 +173,7 @@ document.getElementById('inscricaoForm').addEventListener('submit', async functi
             document.getElementById('sobrenome').value = '';
             document.getElementById('rg').value = '';
             document.getElementById('email').value = '';
-            familiarInputs.forEach(input => input.value = '');
+            document.getElementById('familiares-container').innerHTML = '';
             
             setTimeout(() => {
                 messageDiv.style.display = 'none';
@@ -166,7 +183,8 @@ document.getElementById('inscricaoForm').addEventListener('submit', async functi
             messageDiv.textContent = '❌ ' + (result.error || 'Erro ao confirmar inscrição');
         }
     } catch (error) {
+        console.error('Erro:', error);
         messageDiv.className = 'message error';
-        messageDiv.textContent = '❌ Erro ao enviar inscrição. Tente novamente.';
+        messageDiv.textContent = '❌ Erro ao enviar inscrição. Verifique sua conexão e tente novamente.';
     }
 });

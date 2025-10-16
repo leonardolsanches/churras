@@ -48,21 +48,23 @@
                     {% if inscricao.familiares %}
                     <div class="familiares-list">
                         <strong>Acompanhantes:</strong>
-                        <ul>
+                        <div class="familiares-grid">
                             {% for familiar in inscricao.familiares %}
-                            <li class="familiar-item-checkbox">
+                            <div class="familiar-row">
                                 <label class="checkbox-container">
                                     <input type="checkbox" class="inscricao-checkbox" value="{{ familiar.id }}" onchange="updateDeleteButton()">
                                 </label>
-                                <span>
-                                    {{ familiar.nome }} {{ familiar.sobrenome or '' }}
+                                <div class="familiar-info">
+                                    <span class="familiar-nome">{{ familiar.nome }}</span>
+                                    <span class="familiar-sobrenome">{{ familiar.sobrenome or '' }}</span>
                                     {% if familiar.documento %}
                                     <span class="rg-badge">{{ familiar.documento }}</span>
                                     {% endif %}
-                                </span>
-                            </li>
+                                </div>
+                                <button class="btn-edit-small" onclick="editarConvidado('{{ familiar.id }}', '{{ familiar.nome }}', '{{ familiar.sobrenome or '' }}', '{{ familiar.documento or '' }}', '{{ inscricao.email }}')">✏️</button>
+                            </div>
                             {% endfor %}
-                        </ul>
+                        </div>
                     </div>
                     {% endif %}
                 </div>
@@ -81,19 +83,21 @@
     <div id="editModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="fecharModal()">&times;</span>
-            <h2>✏️ Editar Cadastro</h2>
+            <h2 id="modal-title">✏️ Editar Cadastro</h2>
             <form id="editForm">
                 <input type="hidden" id="edit-email">
+                <input type="hidden" id="edit-id">
+                <input type="hidden" id="edit-type">
                 <div class="form-group">
                     <label>Nome:</label>
                     <input type="text" id="edit-nome" required>
                 </div>
                 <div class="form-group">
                     <label>Sobrenome:</label>
-                    <input type="text" id="edit-sobrenome" required>
+                    <input type="text" id="edit-sobrenome">
                 </div>
                 <div class="form-group">
-                    <label>RG (opcional):</label>
+                    <label>RG/CPF (opcional):</label>
                     <input type="text" id="edit-rg">
                 </div>
                 <button type="submit" class="btn-save">💾 Salvar</button>
@@ -152,10 +156,24 @@
         }
 
         function editarInscricao(email, nome, sobrenome, rg) {
+            document.getElementById('modal-title').textContent = '✏️ Editar Responsável';
+            document.getElementById('edit-type').value = 'responsavel';
             document.getElementById('edit-email').value = email;
+            document.getElementById('edit-id').value = '';
             document.getElementById('edit-nome').value = nome;
             document.getElementById('edit-sobrenome').value = sobrenome;
             document.getElementById('edit-rg').value = rg;
+            document.getElementById('editModal').style.display = 'block';
+        }
+
+        function editarConvidado(id, nome, sobrenome, documento, email) {
+            document.getElementById('modal-title').textContent = '✏️ Editar Convidado';
+            document.getElementById('edit-type').value = 'convidado';
+            document.getElementById('edit-email').value = email;
+            document.getElementById('edit-id').value = id;
+            document.getElementById('edit-nome').value = nome;
+            document.getElementById('edit-sobrenome').value = sobrenome;
+            document.getElementById('edit-rg').value = documento;
             document.getElementById('editModal').style.display = 'block';
         }
 
@@ -166,6 +184,7 @@
         document.getElementById('editForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
+            const tipo = document.getElementById('edit-type').value;
             const dados = {
                 email: document.getElementById('edit-email').value,
                 nome: document.getElementById('edit-nome').value,
@@ -173,8 +192,13 @@
                 rg: document.getElementById('edit-rg').value
             };
 
+            if (tipo === 'convidado') {
+                dados.id = document.getElementById('edit-id').value;
+            }
+
             try {
-                const response = await fetch('/api/inscricao/update', {
+                const endpoint = tipo === 'convidado' ? '/api/convidado/update' : '/api/inscricao/update';
+                const response = await fetch(endpoint, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(dados)
